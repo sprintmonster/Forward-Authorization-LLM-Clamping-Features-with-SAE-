@@ -15,27 +15,27 @@
 
 GPQA + MMLU 
 
-고등학생 수준 = ['high_school_biology', 'high_school_chemistry', 'high_school_physics'] ㄷ MMLU['subject']
-학부 수준 = ['colledge_biology', colledge_chmistry', 'colledge_physics'] ㄷ MMLU['subject']
-대학원 수준( reviewed by Ph.D ) = GPQA['Question'] ㄷ GPQA_main.csv \# GPQA based on biology, chemistry and physics
+고등학생 수준 = ['high_school_biology', 'high_school_chemistry', 'high_school_physics'] ㄷ MMLU['subject']<br/>
+학부 수준 = ['colledge_biology', colledge_chmistry', 'colledge_physics'] ㄷ MMLU['subject']<br/>
+대학원 수준( reviewed by Ph.D ) = GPQA['Question'] ㄷ GPQA_main.csv \# GPQA based on biology, chemistry and physics<br/>
 
-Dataset for experiments will build following columns:
+Dataset for experiments will build following columns:<br/>
 Prompt | education level | subject
 
-if MMLU
-    Prompt = MMLU['question'] + MMLU['choices']
-else
-    Prompt = GPQA['Question']
+if MMLU<br/>
+    Prompt = MMLU['question'] + MMLU['choices']<br/>
+else<br/>
+    Prompt = GPQA['Question']<br/>
 
-if MMLU
-    education level = split(MMLU['subject'])[level_idx]
-else
-    education level = Graduate
+if MMLU<br/>
+    education level = split(MMLU['subject'])[level_idx]<br/>
+else<br/>
+    education level = Graduate<br/>
 
-if MMLU
-    subject = split(MMLU['subject'])[subject_idx]
-else
-    subject = unique(GPQA['High-level domain'])
+if MMLU<br/>
+    subject = split(MMLU['subject'])[subject_idx]<br/>
+else<br/>
+    subject = unique(GPQA['High-level domain'])<br/>
 
 
 
