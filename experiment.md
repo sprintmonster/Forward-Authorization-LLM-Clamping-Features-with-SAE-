@@ -27,6 +27,16 @@ if MMLU
 else
     Prompt = GPQA['Question']
 
+if MMLU
+    education level = split(MMLU['subject'])[level_idx]
+else
+    education level = Graduate
+
+if MMLU
+    subject = split(MMLU['subject'])[subject_idx]
+else
+    subject = unique(GPQA['High-level domain'])
+
 
 
 
