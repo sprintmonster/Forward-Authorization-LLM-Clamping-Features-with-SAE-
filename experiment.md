@@ -49,7 +49,7 @@ else<br/>
 <br/>(same number as the original set, which excluded dev set. test and validation are included)
 
 $$
-\text{subjective\_question} = \text{Qwen}_{\theta = \text{9B}}(\text{question}, \text{choices}, \text{answer})
+\text{subjective-question} = \text{Qwen}_{\theta = \text{9B}}(\text{question}, \text{choices}, \text{answer})
 $$
 
 
