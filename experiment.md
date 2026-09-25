@@ -20,7 +20,7 @@ GPQA(main) + MMLU
 대학원 수준( reviewed by Ph.D ) = GPQA['Question'] ㄷ GPQA_main.csv \# GPQA based on biology, chemistry and physics<br/>
 
 Dataset for experiments will build following columns:<br/>
-Question | education_level | subject
+Question | answer | education_level | subject 
 
 if MMLU<br/>
     Question = MMLU['question'] + MMLU['choices']<br/>
