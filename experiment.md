@@ -38,7 +38,7 @@ else<br/>
     subject = unique(GPQA['High-level domain'])<br/>
 
 
-### 26.09.24
+### 26.09.25
 
 ## MMLU 객관식 문항에서 주관식 문항으로 변경
 
@@ -53,3 +53,12 @@ $$
 $$
 
 
+### 26.09.26
+
+## LLM 선택, SAE 종류와 설치 위치 지정
+
+<br/>model = gemma 3 1B
+<br/>sae = gemma 2 scope 270M pt
+<br/>observation position = resid_post (last transformer block residual stream)
+
+// found error that 'graduate' is not in validation set
