@@ -53,3 +53,34 @@ $$
 $$
 
 
+### 26.09.26
+
+## 데이터 셋 구성
+
+train(1413)
+<br/>high_school 819
+<br/>graduate 403
+<br/>colledge 191
+
+<br/>validation(150)
+<br/>high_school 88
+<br/>gradudate 45
+college 17
+
+<br/>train : vaild : test $\simeq$ 8 : 1 : 1
+
+### 26.09.27
+
+## activation feature by UMAP
+
+input = Question + education level<br/>
+gemma(input)<br/>
+
+* 22th layer (depth 85%) observation (sae fine-tunned)<br/>
+<img src = gemma1b/umap_logs/22layer_pretrained.png width="660" height="440">
+<br/>
+
+* 22th layer (depth 85%) observation (sae freezed)<br/>
+<img src = gemma1b/umap_logs/22layer_freezed.png width="660" height="440">
+
+future work : it would be nessesary to embed as education_level
