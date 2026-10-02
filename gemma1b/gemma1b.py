@@ -36,11 +36,10 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 
-def make_prompt(question: str, education_level: str) -> str:
+def make_prompt(question: str) -> str:
     return (
         "Question:\n"
         f"{question}\n\n"
-        f"Education level: {education_level}\n\n"
         "Answer:\n"
     )
 
@@ -50,7 +49,6 @@ class AnswerDataset(Dataset):
     trainset.csv에 다음 컬럼이 필요합니다.
 
     - Question
-    - education_level
 
     SAE는 answer가 아닌 prompt activation만 학습합니다.
     """
@@ -61,7 +59,6 @@ class AnswerDataset(Dataset):
         for row in frame.itertuples(index=False):
             prompt = make_prompt(
                 question=str(row.Question),
-                education_level=str(row.education_level),
             )
             prompt_ids = tokenizer(
                 prompt,
@@ -127,7 +124,7 @@ class CausalDataCollator:
 def split_data(data_path: Path, output_dir: Path, seed: int):
     frame = pd.read_csv(data_path)
 
-    required_columns = {"Question", "education_level"}
+    required_columns = {"Question"}
     missing_columns = required_columns.difference(frame.columns)
 
     if missing_columns:
