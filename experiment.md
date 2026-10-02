@@ -62,3 +62,9 @@ $$
 <br/>observation position = resid_post (last transformer block residual stream)
 
 // found error that 'graduate' is not in validation set
+
+### 26.09.30
+
+## 피드백, umap이 아닌 뉴런들의 인덱스로 확인할 것.
+
+ 
