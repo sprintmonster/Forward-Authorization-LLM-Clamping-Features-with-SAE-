@@ -98,3 +98,17 @@ gemma(input)<br/>
 <img src = gemma1b/umap_logs/22layer_freezed.png width="660" height="440">
 
 future work : it would be nessesary to embed as education_level
+
+### 26.10.09
+
+## Middle point
+
+* College level<br/>
+<img src = gemma1b/feature-activation-output/feature-layer-heatmaps/feature_layer_heatmap_college.png><br/>
+
+* Graduate level<br/>
+<img src = gemma1b/feature-activation-output/feature-layer-heatmaps/feature_layer_heatmap_graduate.png><br/>
+
+* High school level<br/>
+<img src = gemma1b/feature-activation-output/feature-layer-heatmaps/feature_layer_heatmap_high_school.png><br/>
+
