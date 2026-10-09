@@ -24,13 +24,31 @@ from transformers.utils import ModelOutput
 MODEL_ID = "google/gemma-3-1b-it"
 
 # 주의:
-# gemma-scope-2-1b-pt-res는 Gemma 2 1B pretrained residual SAE입니다.
+# gemma-scope-2-1b-pt-res-all은 모든 resid_post 위치를 포함하는
+# Gemma 3 1B pretrained residual SAE release입니다.
 # Gemma 3 1B IT와 hidden size는 같더라도 activation distribution은 다를 수 있습니다.
-SAE_RELEASE = "gemma-scope-2-1b-pt-res"
-SAE_ID = "layer_22_width_16k_l0_medium"
+SAE_RELEASE = "gemma-scope-2-1b-pt-res-all"
+SAE_ID = "layer_22_width_16k_l0_big"
+SAE_ID_TEMPLATE = "layer_{layer_index}_width_16k_l0_big"
+LAYER_GROUP_SIZE = 5
 
 LAYER_INDEX = 22
 DATA_PATH = Path(__file__).resolve().parents[1] / "dataset" / "trainset.csv"
+
+
+def get_sae_id(layer_index: int) -> str:
+    return SAE_ID_TEMPLATE.format(layer_index=layer_index)
+
+
+def make_layer_groups(layer_indices, group_size: int = LAYER_GROUP_SIZE):
+    if group_size < 1:
+        raise ValueError("group_size must be at least 1.")
+
+    layer_indices = list(layer_indices)
+    return [
+        layer_indices[start : start + group_size]
+        for start in range(0, len(layer_indices), group_size)
+    ]
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -404,7 +422,7 @@ class FrozenGemmaSAE(nn.Module):
                 "sae_state_dict": self.sae.state_dict(),
                 "model_id": MODEL_ID,
                 "sae_release": SAE_RELEASE,
-                "sae_id": SAE_ID,
+                "sae_id": get_sae_id(self.layer_index),
                 "layer_index": self.layer_index,
                 "recon_loss_weight": self.recon_loss_weight,
                 "sparsity_loss_weight": self.sparsity_loss_weight,
@@ -624,51 +642,37 @@ def validate_model_sae_compatibility(gemma, sae):
         )
 
 
-def train(args):
-    output_dir = Path(args.output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    train_frame, validation_frame = split_data(
-        data_path=DATA_PATH,
-        output_dir=output_dir,
-        seed=args.seed,
-    )
-
-    gemma, tokenizer, device = load_model_and_tokenizer()
-
+def train_layer(
+    args,
+    gemma,
+    tokenizer,
+    device: str,
+    train_dataset,
+    validation_dataset,
+    layer_index: int,
+    layer_output_dir: Path,
+):
+    sae_id = get_sae_id(layer_index)
+    print(f"\n=== Training layer {layer_index}: {sae_id} ===")
     sae = SAE.from_pretrained(
         release=SAE_RELEASE,
-        sae_id=SAE_ID,
+        sae_id=sae_id,
         device=device,
     )
-
     validate_model_sae_compatibility(gemma, sae)
 
     model = FrozenGemmaSAE(
         gemma=gemma,
         sae=sae,
-        layer_index=LAYER_INDEX,
+        layer_index=layer_index,
         recon_loss_weight=args.recon_loss_weight,
         sparsity_loss_weight=args.sparsity_loss_weight,
     )
-
     model.to(device)
     verify_parameter_policy(model)
 
-    train_dataset = AnswerDataset(
-        frame=train_frame,
-        tokenizer=tokenizer,
-        max_length=args.max_length,
-    )
-
-    validation_dataset = AnswerDataset(
-        frame=validation_frame,
-        tokenizer=tokenizer,
-        max_length=args.max_length,
-    )
-
     training_args = TrainingArguments(
-        output_dir=str(output_dir),
+        output_dir=str(layer_output_dir),
         num_train_epochs=args.epochs,
         learning_rate=args.learning_rate,
         per_device_train_batch_size=args.batch_size,
@@ -707,18 +711,66 @@ def train(args):
 
     try:
         trainer.train()
-
-        save_loss_history(trainer, output_dir)
-
-        # 최종 SAE checkpoint
-        model.save_sae_checkpoint(output_dir / "final_sae.pt")
-
-        # Gemma는 frozen이므로 config/tokenizer만 저장
-        model.gemma.config.save_pretrained(output_dir / "gemma_config")
-        tokenizer.save_pretrained(output_dir / "tokenizer")
-
+        save_loss_history(trainer, layer_output_dir)
+        model.save_sae_checkpoint(layer_output_dir / "final_sae.pt")
+        model.gemma.config.save_pretrained(layer_output_dir / "gemma_config")
+        tokenizer.save_pretrained(layer_output_dir / "tokenizer")
     finally:
         model.remove_hook()
+        del trainer, model, sae
+        if device == "cuda":
+            torch.cuda.empty_cache()
+
+
+def train(args):
+    output_dir = Path(args.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    train_frame, validation_frame = split_data(
+        data_path=DATA_PATH,
+        output_dir=output_dir,
+        seed=args.seed,
+    )
+
+    gemma, tokenizer, device = load_model_and_tokenizer()
+    gemma.to(device).eval()
+    train_dataset = AnswerDataset(
+        frame=train_frame,
+        tokenizer=tokenizer,
+        max_length=args.max_length,
+    )
+    validation_dataset = AnswerDataset(
+        frame=validation_frame,
+        tokenizer=tokenizer,
+        max_length=args.max_length,
+    )
+
+    if args.layer_index is None:
+        layer_indices = list(range(len(gemma.model.layers)))
+    else:
+        layer_indices = [args.layer_index]
+
+    layer_groups = make_layer_groups(
+        layer_indices,
+        group_size=args.layer_group_size,
+    )
+    print(f"Layer groups: {layer_groups}")
+
+    for group_index, layer_group in enumerate(layer_groups):
+        print(f"\n=== Training layer group {group_index}: {layer_group} ===")
+        for layer_index in layer_group:
+            layer_output_dir = output_dir / f"layer_{layer_index:02d}"
+            layer_output_dir.mkdir(parents=True, exist_ok=True)
+            train_layer(
+                args=args,
+                gemma=gemma,
+                tokenizer=tokenizer,
+                device=device,
+                train_dataset=train_dataset,
+                validation_dataset=validation_dataset,
+                layer_index=layer_index,
+                layer_output_dir=layer_output_dir,
+            )
 
 
 def probe_residual(model, tokenizer, sae, text: str, device: str):
@@ -805,6 +857,20 @@ def main():
     parser.add_argument(
         "--output-dir",
         default="./gemma1b-sae-output",
+    )
+
+    parser.add_argument(
+        "--layer-index",
+        type=int,
+        default=None,
+        help="Train one layer; default trains all model layers.",
+    )
+
+    parser.add_argument(
+        "--layer-group-size",
+        type=int,
+        default=LAYER_GROUP_SIZE,
+        help="Number of layers in each training group.",
     )
 
     parser.add_argument(
