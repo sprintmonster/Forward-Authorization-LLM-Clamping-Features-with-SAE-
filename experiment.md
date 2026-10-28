@@ -121,3 +121,4 @@ future work : it would be nessesary to embed as education_level
 <img src = gemma1b/feature-activation-output-mlp-out/feature-layer-heatmaps/feature_layer_heatmap_graduate.png><br/>
 * High school level<br/>
 <img src = gemma1b/feature-activation-output-mlp-out/feature-layer-heatmaps/feature_layer_heatmap_high_school.png><br/>
+
