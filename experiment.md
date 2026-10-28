@@ -101,7 +101,7 @@ future work : it would be nessesary to embed as education_level
 
 ### 26.10.09
 
-## Middle point
+## Middle point (observed position: decoder output) fine-tunned all sae
 
 * College level<br/>
 <img src = gemma1b/feature-activation-output/feature-layer-heatmaps/feature_layer_heatmap_college.png><br/>
@@ -112,3 +112,12 @@ future work : it would be nessesary to embed as education_level
 * High school level<br/>
 <img src = gemma1b/feature-activation-output/feature-layer-heatmaps/feature_layer_heatmap_high_school.png><br/>
 
+### 26.10.28
+
+## (observed position: mlp_out, residual stream) freeze all sae
+* College level<br/>
+<img src=gemma1b/feature-activation-output-mlp-out/feature-layer-heatmaps/feature_layer_heatmap_college.png><br/>
+* Graduate level<br/>
+<img src = gemma1b/feature-activation-output-mlp-out/feature-layer-heatmaps/feature_layer_heatmap_graduate.png><br/>
+* High school level<br/>
+<img src = gemma1b/feature-activation-output-mlp-out/feature-layer-heatmaps/feature_layer_heatmap_high_school.png><br/>
